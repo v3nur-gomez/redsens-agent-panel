@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Activity, MessageCircle } from "lucide-react";
 
 interface ActionButtonsProps {
   onAgentClick: () => void;
@@ -7,25 +6,23 @@ interface ActionButtonsProps {
 
 const ActionButtons = ({ onAgentClick }: ActionButtonsProps) => {
   return (
-    <div className="flex gap-6 justify-center mt-8">
-      {/* Sensores Button */}
+    <div className="flex gap-8 justify-center mt-10">
+      {/* Sensores Button - larger, no icon, bolder font */}
       <Button 
         variant="sensor" 
         size="lg" 
-        className="px-12 py-8 text-xl font-semibold min-w-48 rounded-full"
+        className="px-16 py-6 text-2xl font-extrabold min-w-[220px] rounded-full"
       >
-        <Activity className="h-7 w-7 mr-4" />
         Sensores
       </Button>
 
-      {/* Agente Button */}
+      {/* Agente Button - larger, no icon, bolder font */}
       <Button 
         variant="agent" 
         size="lg" 
-        className="px-12 py-8 text-xl font-semibold min-w-48 rounded-full"
+        className="px-16 py-6 text-2xl font-extrabold min-w-[220px] rounded-full"
         onClick={onAgentClick}
       >
-        <MessageCircle className="h-7 w-7 mr-4" />
         Agente
       </Button>
     </div>

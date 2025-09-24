@@ -31,8 +31,10 @@ const Index = () => {
 
         {/* Agent Chat - positioned below and slides up */}
         <div 
+          role="region"
+          aria-hidden={!showAgent}
           className={`absolute top-0 left-0 w-full transition-transform duration-500 ease-in-out ${
-            showAgent ? "transform translate-y-0" : "transform translate-y-full"
+            showAgent ? "transform translate-y-0 pointer-events-auto" : "transform translate-y-full pointer-events-none"
           }`}
         >
           <div className="container mx-auto px-6 py-8 h-full flex flex-col">

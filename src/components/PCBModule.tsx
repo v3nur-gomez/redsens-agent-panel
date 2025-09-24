@@ -13,9 +13,9 @@ const PCBModule = () => {
 
   return (
     <div className="space-y-6">
-      {/* Module Title */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground mb-2">Módulo PCB</h2>
+      {/* Module Title - left aligned and larger */}
+      <div className="">
+        <h2 className="text-3xl font-extrabold text-foreground mb-2 text-left">Módulo PCB</h2>
         <div className="h-px bg-border w-full"></div>
       </div>
 
