@@ -14,7 +14,7 @@ const Header = () => {
             alt="RedSens Logo" 
             className="w-10 h-10 object-contain"
           />
-          <h1 className="text-white text-xl font-bold tracking-wide">
+          <h1 className="text-white text-x2 font-bold tracking-wide">
             RedSens
           </h1>
         </div>
