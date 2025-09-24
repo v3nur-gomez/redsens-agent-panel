@@ -14,16 +14,16 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
-      {/* Main Content Container */}
-      <div className="relative overflow-hidden">
+
+      {/* Main Content Container - fill remaining height */}
+      <div className="relative flex-1 overflow-hidden">
         {/* Main Content - slides up when agent is active */}
         <div 
           className={`transition-transform duration-500 ease-in-out ${
             showAgent ? "transform -translate-y-full" : "transform translate-y-0"
           }`}
         >
-          <div className="container mx-auto px-6 py-8 space-y-8">
+          <div className="container mx-auto px-6 py-8 space-y-8 h-full flex flex-col justify-center">
             <PCBModule />
             <ActionButtons onAgentClick={handleAgentClick} />
           </div>
@@ -35,7 +35,7 @@ const Index = () => {
             showAgent ? "transform translate-y-0" : "transform translate-y-full"
           }`}
         >
-          <div className="container mx-auto px-6 py-8">
+          <div className="container mx-auto px-6 py-8 h-full flex flex-col">
             <div className="mb-6">
               <button
                 onClick={() => setShowAgent(false)}
@@ -44,7 +44,9 @@ const Index = () => {
                 ← Volver al módulo
               </button>
             </div>
-            <AgentChat />
+            <div className="flex-1">
+              <AgentChat />
+            </div>
           </div>
         </div>
       </div>
