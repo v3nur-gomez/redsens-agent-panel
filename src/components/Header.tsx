@@ -5,7 +5,7 @@ import redSensLogo from "@/assets/redsens-logo.png";
 
 const Header = () => {
   return (
-    <header className="bg-gradient-royal shadow-soft px-6 py-4">
+    <header className="bg-royal-blue-header shadow-soft px-6 py-4">
       <div className="flex items-center justify-between">
         {/* Logo and Company Name */}
         <div className="flex items-center gap-3">

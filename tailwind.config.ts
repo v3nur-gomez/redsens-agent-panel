@@ -62,6 +62,7 @@ export default {
           DEFAULT: "hsl(var(--royal-blue))",
           light: "hsl(var(--royal-blue-light))",
           dark: "hsl(var(--royal-blue-dark))",
+          header: "hsl(var(--royal-blue-header))",
         },
         sensor: {
           DEFAULT: "hsl(var(--sensor-primary))",

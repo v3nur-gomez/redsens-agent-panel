@@ -12,9 +12,9 @@ const ActionButtons = ({ onAgentClick }: ActionButtonsProps) => {
       <Button 
         variant="sensor" 
         size="lg" 
-        className="px-8 py-6 text-lg font-semibold min-w-32"
+        className="px-12 py-8 text-xl font-semibold min-w-48 rounded-full"
       >
-        <Activity className="h-6 w-6 mr-3" />
+        <Activity className="h-7 w-7 mr-4" />
         Sensores
       </Button>
 
@@ -22,10 +22,10 @@ const ActionButtons = ({ onAgentClick }: ActionButtonsProps) => {
       <Button 
         variant="agent" 
         size="lg" 
-        className="px-8 py-6 text-lg font-semibold min-w-32"
+        className="px-12 py-8 text-xl font-semibold min-w-48 rounded-full"
         onClick={onAgentClick}
       >
-        <MessageCircle className="h-6 w-6 mr-3" />
+        <MessageCircle className="h-7 w-7 mr-4" />
         Agente
       </Button>
     </div>
