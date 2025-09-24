@@ -15,6 +15,11 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // Custom RedSens variants
+        "royal": "bg-gradient-royal text-white hover:bg-royal-blue-dark shadow-soft transition-all duration-200",
+        "config": "bg-royal-blue text-white hover:bg-royal-blue-dark border border-royal-blue-light shadow-soft",
+        "sensor": "bg-gradient-sensor text-white hover:opacity-90 shadow-sensor transition-all duration-300 rounded-full",
+        "agent": "bg-gradient-agent text-white hover:opacity-90 shadow-agent transition-all duration-300 rounded-full",
       },
       size: {
         default: "h-10 px-4 py-2",

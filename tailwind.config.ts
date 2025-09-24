@@ -57,6 +57,33 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Custom RedSens colors
+        "royal-blue": {
+          DEFAULT: "hsl(var(--royal-blue))",
+          light: "hsl(var(--royal-blue-light))",
+          dark: "hsl(var(--royal-blue-dark))",
+        },
+        sensor: {
+          DEFAULT: "hsl(var(--sensor-primary))",
+          secondary: "hsl(var(--sensor-secondary))",
+          light: "hsl(var(--sensor-light))",
+        },
+        agent: {
+          DEFAULT: "hsl(var(--agent-primary))",
+          secondary: "hsl(var(--agent-secondary))",
+          light: "hsl(var(--agent-light))",
+        },
+      },
+      backgroundImage: {
+        'gradient-royal': 'var(--gradient-royal)',
+        'gradient-sensor': 'var(--gradient-sensor)',
+        'gradient-agent': 'var(--gradient-agent)',
+      },
+      boxShadow: {
+        'soft': 'var(--shadow-soft)',
+        'medium': 'var(--shadow-medium)',
+        'sensor': 'var(--shadow-sensor)',
+        'agent': 'var(--shadow-agent)',
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -80,10 +107,37 @@ export default {
             height: "0",
           },
         },
+        "slide-up": {
+          from: {
+            transform: "translateY(0)",
+          },
+          to: {
+            transform: "translateY(-100%)",
+          },
+        },
+        "slide-down": {
+          from: {
+            transform: "translateY(-100%)",
+          },
+          to: {
+            transform: "translateY(0)",
+          },
+        },
+        "fade-in": {
+          from: {
+            opacity: "0",
+          },
+          to: {
+            opacity: "1",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "slide-up": "slide-up 0.5s ease-in-out",
+        "slide-down": "slide-down 0.5s ease-in-out",
+        "fade-in": "fade-in 0.3s ease-out",
       },
     },
   },

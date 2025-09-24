@@ -2,39 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/* RedSens IoT Dashboard Design System
 All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 220 20% 98%;
+    --foreground: 220 25% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 25% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 220 25% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Royal Blue Primary */
+    --primary: 225 85% 65%;
+    --primary-light: 225 85% 75%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 15% 96%;
+    --secondary-foreground: 220 25% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 15% 96%;
+    --muted-foreground: 220 10% 50%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 225 85% 65%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 15% 90%;
+    --input: 220 15% 95%;
+    --ring: 225 85% 65%;
+
+    /* Custom RedSens Colors */
+    --royal-blue: 225 85% 65%;
+    --royal-blue-light: 225 85% 75%;
+    --royal-blue-dark: 225 85% 55%;
+    
+    /* Sensor Colors (Greens) */
+    --sensor-primary: 142 76% 36%;
+    --sensor-secondary: 142 69% 58%;
+    --sensor-light: 142 69% 68%;
+    
+    /* Agent Colors (Purple-Blue) */
+    --agent-primary: 260 60% 65%;
+    --agent-secondary: 240 80% 70%;
+    --agent-light: 250 70% 75%;
+    
+    /* Gradients */
+    --gradient-royal: linear-gradient(135deg, hsl(var(--royal-blue)), hsl(var(--royal-blue-light)));
+    --gradient-sensor: linear-gradient(135deg, hsl(var(--sensor-primary)), hsl(var(--sensor-light)));
+    --gradient-agent: linear-gradient(135deg, hsl(var(--agent-primary)), hsl(var(--agent-secondary)));
+    
+    /* Shadows */
+    --shadow-soft: 0 4px 6px -1px hsl(var(--royal-blue) / 0.1);
+    --shadow-medium: 0 10px 15px -3px hsl(var(--royal-blue) / 0.1);
+    --shadow-sensor: 0 8px 25px -5px hsl(var(--sensor-primary) / 0.3);
+    --shadow-agent: 0 8px 25px -5px hsl(var(--agent-primary) / 0.3);
 
     --radius: 0.5rem;
 
