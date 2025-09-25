@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Send, Bot, User } from "lucide-react";
+import { queryBedrock } from "@/lib/bedrock";
 
 interface Message {
   id: string;
@@ -44,16 +45,34 @@ const AgentChat = () => {
     setMessages(prev => [...prev, newMessage]);
     setInputValue("");
 
-    // Simulate agent response
-    setTimeout(() => {
-      const agentResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "Entendido. Te ayudo a resolver tu consulta sobre el módulo PCB. ¿Podrías proporcionar más detalles?",
-        sender: "agent",
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, agentResponse]);
-    }, 1000);
+    // Add a temporary 'typing' message
+    const typingId = `t-${Date.now()}`;
+    const typingMessage: Message = { id: typingId, content: "...", sender: "agent", timestamp: new Date() };
+    setMessages(prev => [...prev, typingMessage]);
+
+    // Try to call Bedrock via backend; fall back to simulated response on error
+    (async () => {
+      try {
+        const history = messages.map(m => ({ role: m.sender === 'user' ? 'user' : 'agent', content: m.content }));
+        const reply = await queryBedrock(inputValue, history as any);
+        const agentResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          content: reply,
+          sender: "agent",
+          timestamp: new Date()
+        };
+        setMessages(prev => prev.map(m => m.id === typingId ? agentResponse : m));
+      } catch (err) {
+        // fallback simulated response
+        const agentResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          content: "Entendido. Te ayudo a resolver tu consulta sobre el módulo PCB. ¿Podrías proporcionar más detalles?",
+          sender: "agent",
+          timestamp: new Date()
+        };
+        setMessages(prev => prev.map(m => m.id === typingId ? agentResponse : m));
+      }
+    })();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
