@@ -2,18 +2,29 @@ import { Menu, User, CreditCard, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import redSensLogo from "@/assets/redsens-logo.png";
+import redSensBadge from "@/assets/redsens.png";
 
-const Header = () => {
+interface HeaderProps {
+  /** Tailwind class to apply as left margin/padding for the logo container (e.g. 'ml-4' or 'pl-6') */
+  logoLeftClass?: string;
+}
+
+const Header = ({ logoLeftClass = "" }: HeaderProps) => {
   return (
     <header className="bg-royal-blue-header shadow-soft px-6 py-4">
       <div className="flex items-center justify-between">
         {/* Logo as image only - contained so scaling doesn't change header height */}
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 overflow-visible flex items-center justify-center">
+        <div className={`flex items-center gap-3 ${logoLeftClass}`}>
+          <div className="w-14 h-14 overflow-visible flex items-center justify-center gap-15">
             <img
               src={redSensLogo}
               alt="RedSens Logo"
-              className="w-12 h-12 object-contain transform transition-transform duration-200 hover:scale-110"
+              className="w-12 h-12 object-contain transform scale-[1.8] origin-center transition-transform duration-200 hover:scale-[1.95]"
+            />
+            <img
+              src={redSensBadge}
+              alt="RedSens Badge"
+              className="w-14 h-14 object-contain transform scale-[5] origin-center transition-transform duration-200 hover:scale-[7]"
             />
           </div>
         </div>
