@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Send, Bot, User } from "lucide-react";
-import { queryBedrock } from "@/lib/bedrock";
+import { queryBedrock, ConversationTurn } from "@/lib/bedrock";
 
 interface Message {
   id: string;
@@ -32,47 +32,66 @@ const AgentChat = () => {
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return;
+    // push user message and clear input
     const newMessage: Message = {
       id: Date.now().toString(),
       content: inputValue,
       sender: "user",
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, newMessage]);
+    setMessages((prev) => [...prev, newMessage]);
     setInputValue("");
+    setIsLoading(true);
+    setError(null);
 
-    // Add a temporary 'typing' message
+    // show typing indicator
     const typingId = `t-${Date.now()}`;
     const typingMessage: Message = { id: typingId, content: "...", sender: "agent", timestamp: new Date() };
-    setMessages(prev => [...prev, typingMessage]);
+    setMessages((prev) => [...prev, typingMessage]);
 
-    // Try to call Bedrock via backend; fall back to simulated response on error
-    (async () => {
+    try {
+      // build history from the current messages snapshot
+      const history: ConversationTurn[] = [...messages, newMessage].map((m) => ({ role: m.sender === "user" ? "user" : "agent", content: m.content }));
+      const reply = await queryBedrock(newMessage.content, history, { timeoutMs: 15000, maxRetries: 2 });
+
+      const agentResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        content: reply,
+        sender: "agent",
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => prev.map((m) => (m.id === typingId ? agentResponse : m)));
+    } catch (err) {
+      // Log detailed error information if available (status, response body/headers)
+      // queryBedrock now attaches non-enumerable properties: status, responseBody, responseHeaders
+      console.error("queryBedrock error:", err);
       try {
-        const history = messages.map(m => ({ role: m.sender === 'user' ? 'user' : 'agent', content: m.content }));
-        const reply = await queryBedrock(inputValue, history as any);
-        const agentResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          content: reply,
-          sender: "agent",
-          timestamp: new Date()
-        };
-        setMessages(prev => prev.map(m => m.id === typingId ? agentResponse : m));
-      } catch (err) {
-        // fallback simulated response
-        const agentResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          content: "Entendido. Te ayudo a resolver tu consulta sobre el módulo PCB. ¿Podrías proporcionar más detalles?",
-          sender: "agent",
-          timestamp: new Date()
-        };
-        setMessages(prev => prev.map(m => m.id === typingId ? agentResponse : m));
+        const e = err as any;
+        if (e.status) console.error("status:", e.status);
+        if (e.responseBody) console.error("responseBody:", e.responseBody);
+        if (e.responseHeaders) console.error("responseHeaders:", e.responseHeaders);
+      } catch (logErr) {
+        // ignore logging errors
       }
-    })();
+      setError("No se pudo conectar con el servicio. Revisa CORS, la disponibilidad del endpoint o consulta la consola para más detalles.");
+      // replace typing with fallback message
+      const agentResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Entendido. Te ayudo a resolver tu consulta sobre el módulo PCB. ¿Podrías proporcionar más detalles?",
+        sender: "agent",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => prev.map((m) => (m.id === typingId ? agentResponse : m)));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -131,17 +150,25 @@ const AgentChat = () => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               className="flex-1"
+              disabled={isLoading}
             />
-            <Button 
-              onClick={handleSendMessage} 
-              variant="agent" 
+            <Button
+              onClick={handleSendMessage}
+              variant="agent"
               size="icon"
               className="rounded-full"
+              disabled={isLoading}
             >
               <Send className="h-4 w-4" />
             </Button>
           </div>
         </div>
+        {isLoading && (
+          <div className="p-2 text-sm text-muted-foreground">Agente escribiendo...</div>
+        )}
+        {error && (
+          <div className="p-2 text-sm text-destructive">{error}</div>
+        )}
       </CardContent>
     </Card>
   );
