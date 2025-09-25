@@ -12,22 +12,27 @@ interface HeaderProps {
 const Header = ({ logoLeftClass = "" }: HeaderProps) => {
   return (
     <header className="bg-royal-blue-header shadow-soft px-6 py-4">
-      <div className="flex items-center justify-between">
+      <div className="flex ml-3 items-center justify-between">
         {/* Logo as image only - contained so scaling doesn't change header height */}
-        <div className={`flex items-center gap-3 ${logoLeftClass}`}>
-          <div className="w-14 h-14 overflow-visible flex items-center justify-center gap-15">
-            <img
-              src={redSensLogo}
-              alt="RedSens Logo"
-              className="w-12 h-12 object-contain transform scale-[1.8] origin-center transition-transform duration-200 hover:scale-[1.95]"
-            />
-            <img
-              src={redSensBadge}
-              alt="RedSens Badge"
-              className="w-14 h-14 object-contain transform scale-[5] origin-center transition-transform duration-200 hover:scale-[7]"
-            />
-          </div>
-        </div>
+            <div className={`flex items-center gap-4 ${logoLeftClass}`}>
+              {/* Logo container */}
+              <div className="w-14 h-14 overflow-visible flex items-center justify-center">
+                <img
+                  src={redSensLogo}
+                  alt="RedSens Logo"
+                  className="w-12 h-12 mr-2 object-contain transform scale-[2] origin-center transition-transform duration-200 hover:scale-[2]"
+                />
+              </div>
+
+              {/* Badge container - separate space */}
+              <div className="w-10 h-10 ml-32 overflow-visible flex items-center justify-center">
+                <img
+                  src={redSensBadge}
+                  alt="RedSens Badge"
+                  className="w-10 h-10 object-contain transform scale-[7] origin-center transition-transform duration-200 hover:scale-[7]"
+                />
+              </div>
+            </div>
 
         {/* Hamburger Menu */}
         <Sheet>
