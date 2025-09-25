@@ -1,4 +1,7 @@
+// Support two shapes: the existing { role: 'user'|'agent', content: string }
+// and the newer `{ author: 'user'|'agent'|'whatever', text: string }` used elsewhere.
 export type ConversationTurn = { role: "user" | "agent"; content: string };
+export type LegacyConversationTurn = { author: string; text: string };
 
 export async function queryBedrock(
   prompt: string,
@@ -7,6 +10,9 @@ export async function queryBedrock(
     timeoutMs?: number;
     maxRetries?: number;
     max_tokens?: number;
+    // Optional sensor values to send when calling /analyze
+    temp?: number | null;
+    level?: number | null;
   }
 ) {
   // Defaults and env overrides
@@ -28,8 +34,19 @@ export async function queryBedrock(
   //   "messages": [ { role: "user", content: [{ type: "text", text: prompt }] } ]
   // }
 
+  // Normalize history: accept either ConversationTurn or LegacyConversationTurn
+  const normalizedHistory = (history || []).map((h: any) => {
+    if (!h) return { role: "user", content: "" };
+    if (typeof h === "object") {
+      if ("role" in h && "content" in h) return { role: h.role === "agent" ? "agent" : "user", content: String(h.content) };
+      if ("author" in h && "text" in h) return { role: h.author === "agent" ? "agent" : "user", content: String(h.text) };
+    }
+    // fallback: treat as user text
+    return { role: "user", content: String(h) };
+  });
+
   const messages = [
-    ...history.map((h) => ({ role: h.role, content: [{ type: "text", text: h.content }] })),
+    ...normalizedHistory.map((h) => ({ role: h.role, content: [{ type: "text", text: h.content }] })),
     { role: "user", content: [{ type: "text", text: prompt }] },
   ];
 
@@ -41,14 +58,20 @@ export async function queryBedrock(
 
   // If this endpoint is the /analyze sensor endpoint, some Lambdas expect a simple sensor payload
   const isAnalyzePath = endpoint.includes("/analyze");
-  const buildSensorPayloadFromPrompt = (p: string) => {
+  const buildSensorPayloadFromPrompt = (p: string, opts?: { temp?: number | null; level?: number | null }) => {
+    // If frontend has explicit temp/level in options, prefer those
+    const providedTemp = opts?.temp ?? null;
+    const providedLevel = opts?.level ?? null;
+
     // sensorId: first token with letters/digits/hyphen
     const tokenMatch = p.match(/[A-Za-z0-9-]{2,}/);
     const sensorId = tokenMatch ? tokenMatch[0] : "UI-1";
-    // temp: first floating number
+    // temp: first floating number in prompt if not provided
     const numMatch = p.match(/-?\d+(?:\.\d+)?/);
-    const temp = numMatch ? Number(numMatch[0]) : null;
-    return { sensorId, temp } as Record<string, unknown>;
+    const temp = providedTemp !== null && providedTemp !== undefined ? providedTemp : (numMatch ? Number(numMatch[0]) : null);
+    const level = providedLevel !== null && providedLevel !== undefined ? providedLevel : null;
+
+    return { sensorId, temp, level } as Record<string, unknown>;
   };
 
   const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -61,7 +84,23 @@ export async function queryBedrock(
     const id = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-      const bodyToSend = isAnalyzePath ? JSON.stringify(buildSensorPayloadFromPrompt(prompt)) : JSON.stringify(payload);
+      // For /analyze, the Lambda expects { temp, level, history: [{author,text}, ...] }
+      let bodyToSend: string;
+      if (isAnalyzePath) {
+        // Convert normalizedHistory back into {author,text} items
+        const historyForLambda = normalizedHistory.map((h) => ({ author: h.role === "agent" ? "assistant" : "user", text: h.content }));
+        // allow caller to pass temp/level via options
+        const sensorPayload = buildSensorPayloadFromPrompt(prompt, { temp: options?.temp ?? null, level: options?.level ?? null });
+        const analyzeBody: Record<string, unknown> = {
+          // keep short keys expected by existing Lambda
+          temp: sensorPayload.temp,
+          level: sensorPayload.level,
+          history: historyForLambda,
+        };
+        bodyToSend = JSON.stringify(analyzeBody);
+      } else {
+        bodyToSend = JSON.stringify(payload);
+      }
       const res = await fetch(endpoint, {
         method: "POST",
         headers,
@@ -121,9 +160,12 @@ export async function queryBedrock(
             d.result,
             d.response,
             d.output,
+            d.analysis,
             d.completion,
             d.data,
           ];
+          // direct 'analysis' top-level field
+          if (typeof d.analysis === "string") return d.analysis;
           for (const c of candidates) {
             if (typeof c === "string") return c;
             if (c != null && typeof c !== "object") return String(c);
