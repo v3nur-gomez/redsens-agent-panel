@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,12 +15,21 @@ const AgentChat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      content: "¡Hola! Soy el asistente de RedSens. ¿En qué puedo ayudarte con tu módulo PCB?",
+      content: "Consulta sobre los ",
       sender: "agent",
       timestamp: new Date()
     }
   ]);
   const [inputValue, setInputValue] = useState("");
+  const messagesRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    const el = messagesRef.current;
+    if (!el) return;
+    // scroll to bottom smoothly
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [messages]);
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
@@ -54,16 +63,16 @@ const AgentChat = () => {
   };
 
   return (
-    <Card className="bg-card border border-border shadow-medium h-96">
-      <CardHeader className="bg-gradient-agent text-white rounded-t-lg">
+    <Card className="bg-card border border-border shadow-medium h-[36rem]">
+      <CardHeader className="bg-royal-blue-header text-white rounded-t-lg">
         <CardTitle className="flex items-center gap-2">
           <Bot className="h-5 w-5" />
           Agente RedSens
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-0 flex flex-col h-80">
+      <CardContent className="p-0 flex flex-col h-[32rem]">
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+  <div ref={messagesRef} className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((message) => (
             <div
               key={message.id}
