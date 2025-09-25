@@ -12,15 +12,23 @@ interface Message {
   timestamp: Date;
 }
 
+// Bluetooth service/characteristic del Aqua-Chip (ESP32)
+const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+const CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+
+interface SensorData {
+  temperature: number;
+  level: number;
+  [key: string]: any;
+}
+
 const AgentChat = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      content: "Consulta sobre los ",
-      sender: "agent",
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [latestSensorData, setLatestSensorData] = useState<SensorData | null>(null);
+  const [isBtConnected, setIsBtConnected] = useState(false);
+  // Use any to avoid TS DOM lib Bluetooth type issues in some configs
+  const deviceRef = useRef<any>(null);
+  const charRef = useRef<any>(null);
   const [inputValue, setInputValue] = useState("");
   const messagesRef = useRef<HTMLDivElement | null>(null);
 
@@ -31,6 +39,19 @@ const AgentChat = () => {
     // scroll to bottom smoothly
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages]);
+
+  // disconnect on unmount
+  useEffect(() => {
+    return () => {
+      try {
+        if (deviceRef.current?.gatt?.connected) {
+          deviceRef.current.gatt.disconnect();
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+  }, []);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +79,10 @@ const AgentChat = () => {
     try {
       // build history from the current messages snapshot
       const history: ConversationTurn[] = [...messages, newMessage].map((m) => ({ role: m.sender === "user" ? "user" : "agent", content: m.content }));
+      // si hay datos del sensor, añadimos un mensaje marcado como agente (para ajustarse al tipo) con la lectura
+      if (latestSensorData) {
+        history.unshift({ role: "agent", content: `SENSOR_DATA: ${JSON.stringify(latestSensorData)}` });
+      }
       const reply = await queryBedrock(newMessage.content, history, { timeoutMs: 15000, maxRetries: 2 });
 
       const agentResponse: Message = {
@@ -94,6 +119,60 @@ const AgentChat = () => {
     }
   };
 
+  // Conectar al Aqua-Chip (ESP32) via Web Bluetooth
+  const connectToAquaChip = async () => {
+    try {
+      const device = await (navigator as any).bluetooth.requestDevice({
+         filters: [{ name: 'Aqua-Chip' }],
+         optionalServices: [SERVICE_UUID],
+       });
+
+      deviceRef.current = device;
+      const server = await device.gatt!.connect();
+      const service = await server.getPrimaryService(SERVICE_UUID);
+      const characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+      charRef.current = characteristic;
+
+      try {
+        await characteristic.startNotifications();
+        characteristic.addEventListener('characteristicvaluechanged', (event: any) => {
+          try {
+            const value = event.target.value;
+            const decoder = new TextDecoder('utf-8');
+            const bytes = value instanceof DataView ? new Uint8Array(value.buffer) : new Uint8Array(value);
+            const jsonString = decoder.decode(bytes);
+            const data = JSON.parse(jsonString);
+            // Adaptar: usar 'temp' como temperatura y validar datos
+            const temp = typeof data.temp === 'number' ? data.temp : Number(data.temp);
+            const level = typeof data.level === 'number' ? data.level : Number(data.level);
+            // Ignorar lecturas inválidas
+            if (!isNaN(temp) && !isNaN(level) && level > 0 && temp > -40 && temp < 125) {
+              setLatestSensorData({ temperature: temp, level });
+              setIsBtConnected(true);
+            }
+          } catch (e) {
+            console.error('Error parsing sensor payload', e);
+          }
+        });
+        // Saludo de bienvenida al conectar exitosamente
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `welcome-${Date.now()}`,
+            content: "¡Conexión exitosa! Soy tu asistente Aqua-Chip. ¿Qué te gustaría saber?",
+            sender: "agent",
+            timestamp: new Date(),
+          },
+        ]);
+      } catch (notifErr) {
+        console.error('Failed to start notifications', notifErr);
+      }
+    } catch (error) {
+      console.error('Bluetooth connection error:', error);
+      setError('No se pudo conectar al Aqua-Chip. Asegúrate de que esté encendido y cerca.');
+    }
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSendMessage();
@@ -103,10 +182,22 @@ const AgentChat = () => {
   return (
     <Card className="bg-card border border-border shadow-medium h-[36rem]">
       <CardHeader className="bg-royal-blue-header text-white rounded-t-lg">
-        <CardTitle className="flex items-center gap-2">
-          <Bot className="h-5 w-5" />
-          Agente RedSens
-        </CardTitle>
+        <div className="flex items-center gap-2 w-full">
+          <CardTitle className="flex items-center gap-2">
+            <Bot className="h-5 w-5" />
+            Agente RedSens
+          </CardTitle>
+          <div className="ml-auto flex items-center gap-2">
+            {latestSensorData ? (
+              <div className="text-sm opacity-90">Temp: {latestSensorData.temperature}°C · Nivel: {latestSensorData.level}</div>
+            ) : (
+              <div className="text-sm opacity-60">Sensor: desconectado</div>
+            )}
+            <Button onClick={connectToAquaChip} size="sm" className="ml-2">
+              {isBtConnected ? 'Reconectar' : 'Conectar Aqua-Chip'}
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="p-0 flex flex-col h-[32rem]">
         {/* Messages Area */}
